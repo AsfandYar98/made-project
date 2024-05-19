@@ -20,7 +20,7 @@ pipeline FreightPipeline {
     block TableDataInterpreter oftype TableInterpreter {
         header: true;
         columns: [
-            "year" oftype PostiveInteger,
+            "year" oftype Date,
             "month" oftype GermanMonths,
             "goods_id" oftype GoodsId,
             "goods_name" oftype text,
@@ -46,6 +46,12 @@ pipeline FreightPipeline {
     ->DataLoader;
 }
 
+valuetype Date oftype text {
+    constraints: [
+        DateFormat,
+    ];
+}
+
 valuetype PostiveInteger oftype text {
     constraints: [
         PostiveIntegerFormat,
@@ -63,6 +69,9 @@ valuetype GoodsId oftype text {
         GoodsIdFormat,
     ];
 }
+
+constraint DateFormat on text:
+    value matches /^\b(1[0-9]{3}|[2-9][0-9]{3})\b/;
 
 constraint PostiveIntegerFormat on text:
     value matches /^[1-9]\d*/;
