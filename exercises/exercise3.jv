@@ -1,0 +1,74 @@
+pipeline TreesPipeline {
+    block DataExtractor oftype HttpExtractor { url: "https://www-genesis.destatis.de/genesis/downloads/00/tables/46131-0014_00.csv"; }
+    block TextInterpreter oftype TextFileInterpreter {}
+    block CSVInterpreter oftype CSVInterpreter { delimiter: ";"; }
+
+    block ColDeleter oftype ColumnDeleter { delete: [ column F, column G, column H, column I, column J, column K, column L, column M, column N, column O, column P, column Q, column R, column S, column T, column U, column V, column W, column X, column Y,column Z, column AA, column AB, column AC, column AD, column AE, column AF, column AG, column AH, column AI, column AJ, column AK, column AL, column AM, column AN, column AO, column AP, column AQ, column AR, column AS]; }
+
+    block RowDeleter oftype RowDeleter {delete: [row 1, row 2, row 3, row 4, row 5, row 6, row 7, row 41337, row 41338, row 41339]; }
+ 
+
+    block NameHeaderWriter oftype CellWriter {
+        at: range A8:E8;
+        write: ["year", "month", "goods_id", "goods_name", "goods_source"]; 
+    }
+
+    block NameHeaderWriter2 oftype CellWriter {
+        at: range AT8:AU8;
+        write: ["abroad", "total"]; 
+    }
+    block TableDataInterpreter oftype TableInterpreter {
+        header: true;
+        columns: [
+            "year" oftype PostiveInteger,
+            "month" oftype GermanMonths,
+            "goods_id" oftype GoodsId,
+            "goods_name" oftype text,
+            "goods_source" oftype text,
+            "abroad" oftype PostiveInteger,
+            "total" oftype PostiveInteger
+        ];
+    }
+
+    block DataLoader oftype SQLiteLoader {
+        table: "goods";
+        file: "./goodsTransportedByTrain.sqlite";
+    }
+
+    DataExtractor
+    ->TextInterpreter
+    ->CSVInterpreter
+    ->NameHeaderWriter
+    ->NameHeaderWriter2
+    ->ColDeleter
+    ->RowDeleter
+    ->TableDataInterpreter
+    ->DataLoader;
+}
+
+valuetype PostiveInteger oftype text {
+    constraints: [
+        PostiveIntegerFormat,
+    ];
+}
+
+valuetype GermanMonths oftype text {
+    constraints: [
+        GermanMonthsList,
+    ];
+}
+
+valuetype GoodsId oftype text {
+    constraints: [
+        GoodsIdFormat,
+    ];
+}
+
+constraint PostiveIntegerFormat on text:
+    value matches /^[1-9]\d*/;
+
+constraint GermanMonthsList on text:
+    value in ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+
+constraint GoodsIdFormat on text:
+    value matches /^NST7-[A-Z0-9]{3}/;
