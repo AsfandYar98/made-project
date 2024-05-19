@@ -71,7 +71,7 @@ valuetype GoodsId oftype text {
 }
 
 constraint DateFormat on text:
-    value matches /^\b(1[0-9]{3}|[2-9][0-9]{3})\b/;
+    value matches /^0{3}[1-9]|[1-9]\d{0,3}|[1-9]\d{3}/;
 
 constraint PostiveIntegerFormat on text:
     value matches /^[1-9]\d*/;
