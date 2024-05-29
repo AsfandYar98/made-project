@@ -1,0 +1,80 @@
+pipeline BatteryTemperaturePipeline {
+    block FileExtractor oftype HttpExtractor { url: "https://www.mowesta.com/data/measure/mowesta-dataset-20221107.zip"; }
+    block ZipInterpreter oftype ArchiveInterpreter { archiveType: "zip";}
+    block DataPicker oftype FilePicker { path: "/data.csv";}
+
+    block TextInterpreter oftype TextFileInterpreter {}
+    block CSVInterpreter oftype CSVInterpreter { delimiter: ";"; }
+    block ColDataSelector oftype CellRangeSelector {select: range A1:J*;}
+
+    block NameHeaderWriter oftype CellWriter {
+        at: range A1:E1;
+        write: ["id", "producer", "model", "month", "temperature"]; 
+    }
+
+    block NameHeaderWriter2 oftype CellWriter {
+        at: cell J1;
+        write: ["battery_temperature"]; 
+    }
+
+    block ColDeleter oftype ColumnDeleter { delete: [column F, column G, column H, column I]; }
+
+    block TableDataInterpreter oftype TableInterpreter {
+        header: true;
+        columns: [
+            "id" oftype PostiveInteger,
+            "producer" oftype text,
+            "model" oftype text,
+            "month" oftype integer,
+            "temperature" oftype decimal,
+            "battery_temperature" oftype decimal
+        ];
+    }
+
+    transform CelsiusToFahrenheit {
+        from tempCelsius oftype decimal;
+        to tempFahrenheit oftype decimal;
+        tempFahrenheit: (tempCelsius * 9/5) + 32;
+    }
+
+    block TemperatureTransformer oftype TableTransformer {
+        inputColumns: ['temperature'];
+        outputColumn: 'temperature';
+        use: CelsiusToFahrenheit;
+    }
+
+    block BatteryTempTransformer oftype TableTransformer {
+        inputColumns: ['battery_temperature'];
+        outputColumn: 'battery_temperature';
+        use: CelsiusToFahrenheit;
+    }
+
+    block DataLoader oftype SQLiteLoader {
+        table: "temperatures";
+        file: "./temperatures.sqlite";
+    }
+
+    FileExtractor
+    ->ZipInterpreter
+    ->DataPicker
+    ->TextInterpreter
+    ->CSVInterpreter
+    ->ColDataSelector
+    ->NameHeaderWriter
+    ->NameHeaderWriter2
+    ->ColDeleter
+    ->TableDataInterpreter
+    ->TemperatureTransformer
+    ->BatteryTempTransformer
+    ->DataLoader;
+}
+
+valuetype PostiveInteger oftype integer {
+    constraints: [
+        PostiveIntegerFormat,
+    ];
+}
+
+constraint PostiveIntegerFormat oftype RangeConstraint {
+   lowerBound: 1;
+}
