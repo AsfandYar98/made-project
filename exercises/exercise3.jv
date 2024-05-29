@@ -79,8 +79,8 @@ constraint PostiveIntegerFormat oftype RangeConstraint {
    lowerBound: 1;
 }
 
-constraint GermanMonthsList oftype AllowlistConstraint:
-    allowlist: ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+constraint GermanMonthsList on text:
+    value in ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
 
 constraint GoodsIdFormat on text:
     value matches /^NST7-[A-Z0-9]{3}/;
