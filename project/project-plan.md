@@ -14,9 +14,9 @@ Air pollution is the fourth leading risk factor for early death and the leading 
 
 <!-- Describe each datasources you plan to use in a section. Use the prefic "DatasourceX" where X is the id of the datasource. -->
 
-### Datasource1: OpenAQ
-* Metadata URL 1: https://docs.openaq.org/docs/accessing-openaq-archive-data
-* Data URL 1: https://explore.openaq.org/#1.2/20/40
+### Datasource1: WHO Air Quality Database
+* Metadata URL 1: https://cdn.who.int/media/docs/default-source/air-pollution-documents/air-quality-and-health/who_database_template_2022.xlsx?sfvrsn=c948d71a_11
+* Data URL 1: https://www.who.int/data/gho/data/themes/air-pollution/who-air-quality-database/2022
 * Data Type: CSV
 
 Aggregates air quality data from various sources worldwide. Provides real-time and historical data on pollutants such as PM2.5, PM10, NO2, SO2, CO, and O3.

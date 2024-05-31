@@ -16,31 +16,35 @@ columns_to_keep = [
     'ISO3',
     'Country',
     'PM2.5 (μg/m3)',
-    'PM10 (μg/m3)',
-    'NO2 (μg/m3)',
-    'PM25 temporal coverage (%)',
-    'PM10 temporal coverage (%)',
-    'NO2 temporal coverage (%)'
+    'PM10 (μg/m3)'
 ]
 climate_df = climate_df[columns_to_keep]
 
+# Handle missing values by filling them with the mean of the respective column
+climate_df['PM2.5 (μg/m3)'].fillna(climate_df['PM2.5 (μg/m3)'].mean(), inplace=True)
+climate_df['PM10 (μg/m3)'].fillna(climate_df['PM10 (μg/m3)'].mean(), inplace=True)
+
 climate_df = climate_df.groupby(['Country', 'ISO3']).agg({
     'PM2.5 (μg/m3)': 'mean',
-    'PM10 (μg/m3)': 'mean',
-    'NO2 (μg/m3)': 'mean',
-    'PM25 temporal coverage (%)': 'mean',
-    'PM10 temporal coverage (%)': 'mean',
-    'NO2 temporal coverage (%)': 'mean'
+    'PM10 (μg/m3)': 'mean'
 }).reset_index()
 
-# Filter rows where Disaster Group is "Natural"
-disaster_natural = disaster_df[disaster_df['Disaster Group'] == 'Natural']
+# Filter to keep only natural disasters and relevant subgroups
+relevant_subgroups = ['Climatological', 'Meteorological']
+filtered_disasters = disaster_df[
+    (disaster_df['Disaster Group'] == 'Natural') & 
+    (disaster_df['Disaster Subgroup'].isin(relevant_subgroups))
+]
 
-# Select only the ISO and Disaster Type columns
-disaster_df_filtered = disaster_natural[['ISO', 'Disaster Type']]
+# Calculate the count of disasters per country
+disaster_counts = filtered_disasters['ISO'].value_counts().reset_index()
+disaster_counts.columns = ['ISO', 'Disasters']
 
 # Merge the two DataFrames on ISO3 and ISO
-merged_df = pd.merge(climate_df, disaster_df_filtered, left_on='ISO3', right_on='ISO', how='inner')
+merged_df = pd.merge(climate_df, disaster_counts, left_on='ISO3', right_on='ISO', how='left')
+
+# Fill NaN values in the Disasters column with 0 (countries with no disasters recorded)
+merged_df['Disasters'].fillna(0, inplace=True)
 
 # Drop the redundant ISO column from the merged DataFrame
 merged_df.drop(columns=['ISO'], inplace=True)
