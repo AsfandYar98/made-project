@@ -3,7 +3,7 @@ pipeline StopPipeline {
     block ZipInterpreter oftype ArchiveInterpreter { archiveType: "zip";}
     block StopsFilePicker oftype FilePicker { path: "/stops.txt"; }
 
-    block TextInterpreter oftype TextFileInterpreter { encoding: "latin6"; }
+    block TextInterpreter oftype TextFileInterpreter { encoding: "utf8"; }
     block CSVInterpreter oftype CSVInterpreter { 
         delimiter: ",";
         enclosing: '"'; 
